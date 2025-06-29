@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Validador de Cartão Estilizado</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #2b5876, #4e4376);
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 50px;
+      color: #fff;
+    }
+
+    .cartao {
+      background: #1e1e1e;
+      border-radius: 12px;
+      width: 360px;
+      padding: 24px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .bandeira {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .numero {
+      font-size: 1.4rem;
+      letter-spacing: 2px;
+      margin: 40px 0 10px;
+    }
+
+    .info-cartao {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.95rem;
+    }
+
+    input {
+      font-size: 1rem;
+      padding: 10px;
+      width: 360px;
+      border: none;
+      border-radius: 6px;
+      margin: 10px 0;
+    }
+
+    .valido {
+      border: 2px solid #4CAF50;
+    }
+
+    .invalido {
+      border: 2px solid #F44336;
+    }
+
+    .resultado {
+      font-size: 1.1rem;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="cartao" id="cartaoBox">
+    <div class="bandeira" id="bandeiraLabel">?</div>
+    <div class="numero" id="exibirNumero">•••• •••• •••• ••••</div>
+    <div class="info-cartao">
+      <div>Nome: <strong>JOÃO EXEMPLO</strong></div>
+      <div>Válido até: <strong>12/29</strong></div>
+    </div>
+  </div>
+
+  <input type="text" id="campoNumero" placeholder="Digite o número do cartão" maxlength="19" oninput="validarCartao()" />
+  <div class="resultado" id="mensagemResultado"></div>
+
+  <script>
+    function detectarBandeira(numero) {
+      if (numero.startsWith('4')) return 'Visa';
+      if (/^5[1-5]/.test(numero) || /^222[1-9]|22[3-9]\\d|2[3-6]\\d{2}|27[01]\\d|2720/.test(numero)) return 'MasterCard';
+      if (/^(4011|4312|4389|5067|6277)/.test(numero)) return 'Elo';
+      if (/^3[47]/.test(numero)) return 'American Express';
+      if (/^6011/.test(numero) || /^65/.test(numero) || /^64[4-9]/.test(numero)) return 'Discover';
+      if (/^6062/.test(numero)) return 'Hipercard';
+      return 'Desconhecida';
+    }
+
+    function validarLuhn(numero) {
+      let soma = 0;
+      let invertido = numero.split('').reverse();
+
+      for (let i = 0; i < invertido.length; i++) {
+        let n = parseInt(invertido[i]);
+        if (i % 2 !== 0) {
+          n *= 2;
+          if (n > 9) n -= 9;
+        }
+        soma += n;
+      }
+
+      return soma % 10 === 0;
+    }
+
+    function validarCartao() {
+      const campo = document.getElementById("campoNumero");
+      const numeroOriginal = campo.value.replace(/\D/g, '');
+      const bandeira = detectarBandeira(numeroOriginal);
+      const valido = validarLuhn(numeroOriginal);
+      
+      document.getElementById("bandeiraLabel").textContent = bandeira;
+      document.getElementById("exibirNumero").textContent = formatarNumero(numeroOriginal);
+
+      const cartaoBox = document.getElementById("cartaoBox");
+      campo.className = valido ? "valido" : "invalido";
+      cartaoBox.style.border = valido ? "2px solid #4CAF50" : "2px solid #F44336";
+
+      document.getElementById("mensagemResultado").innerHTML = 
+        `<strong>${valido ? '✔️ Número válido!' : '❌ Número inválido!'}</strong> Detecção: ${bandeira}`;
+    }
+
+    function formatarNumero(numero) {
+      return numero.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+    }
+  </script>
+</body>
+</html>
